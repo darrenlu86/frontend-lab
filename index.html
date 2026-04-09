@@ -34,13 +34,130 @@
             drop-shadow(0 6px 16px rgba(0,0,0,0.04));
   }
 
+  /* ======== 手機版：整個螢幕就是信封正面特寫 ======== */
+  @media (max-width: 480px) {
+    body {
+      background-color: #c9bdb3;
+      background-image: none;
+    }
+    .scene { width: 100vw; }
+
+    /* 信封 = 整個螢幕 */
+    .envelope {
+      position: fixed; inset: 0;
+      width: 100vw; height: 100dvh;
+      filter: none;
+      perspective: 800px;
+    }
+    .env-body { border-radius: 0; }
+    .env-body canvas { border-radius: 0; }
+
+    .env-body::before {
+      background: none !important;
+      z-index: 1;
+    }
+    /* SVG 摺痕 */
+    .fold-lines {
+      display: block !important;
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+    /*
+      四條摺痕各有不同深淺：
+      - 上方左線 (左上→中心)：最深，翻蓋壓在最上面
+      - 上方右線 (右上→中心)：次深
+      - 下方左線 (左下→中心)：淺，底折在最下層
+      - 下方右線 (右下→中心)：最淺
+      每條線旁邊有亮邊(高光)模擬紙張凸起
+    */
+    .fold-top-l {
+      stroke: rgba(0,0,0,0.07);
+      stroke-width: 0.35;
+    }
+    .fold-top-r {
+      stroke: rgba(0,0,0,0.06);
+      stroke-width: 0.3;
+    }
+    .fold-bot-l {
+      stroke: rgba(0,0,0,0.04);
+      stroke-width: 0.25;
+    }
+    .fold-bot-r {
+      stroke: rgba(0,0,0,0.035);
+      stroke-width: 0.2;
+    }
+    /* 每條暗線旁的高光線 — 紙張凸起的亮邊 */
+    .fold-highlight {
+      stroke: rgba(255,255,255,0.06);
+      stroke-width: 0.2;
+    }
+    .fold-highlight-strong {
+      stroke: rgba(255,255,255,0.08);
+      stroke-width: 0.25;
+    }
+
+    /* 紙張層次：翻蓋區微亮、下方區微暗 */
+    .env-body::after {
+      content: '' !important;
+      position: absolute !important;
+      inset: 0 !important;
+      background:
+        /* 翻蓋區域微亮（上層紙蓋住下層）*/
+        linear-gradient(to bottom,
+          rgba(255,255,255,0.025) 0%,
+          rgba(255,255,255,0.015) 38%,
+          transparent 42%,
+          rgba(0,0,0,0.012) 46%,
+          rgba(0,0,0,0.018) 100%),
+        /* 左右側翼的微妙明暗差 */
+        linear-gradient(to right,
+          rgba(0,0,0,0.008) 0%,
+          transparent 20%,
+          transparent 80%,
+          rgba(0,0,0,0.005) 100%) !important;
+      z-index: 1;
+      pointer-events: none;
+      border-radius: 0 !important;
+    }
+
+    /* 壓印 — 放大，在螢幕中央偏上 */
+    .seal {
+      top: 42% !important; left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      width: 88px !important; height: 88px !important;
+    }
+    .scene.opened .seal {
+      transform: translate(-50%, -50%) scale(0) !important;
+    }
+
+    /* 翻蓋 */
+    .flap { width: 100vw; height: 55vh; }
+
+    /* 文字 */
+    .env-text {
+      position: fixed !important;
+      bottom: 16vh; left: 0; right: 0;
+      margin-top: 0 !important; z-index: 6;
+      font-size: 14px;
+    }
+    .tap-hint {
+      position: fixed !important;
+      bottom: 12vh; left: 0; right: 0;
+      margin-top: 0 !important; z-index: 6;
+    }
+
+    /* 卡片 */
+    .card { width: 88vw; max-width: 360px; }
+  }
+
   /* 信封本體 — 就是整個長方形 */
   .env-body {
     width: 100%; height: 100%;
     border-radius: 2px;
     position: relative;
     overflow: hidden;
-    /* 底色由 JS 產生的 canvas 紋理覆蓋 */
     background-color: #c9bdb3;
   }
   /* canvas 紋理圖層 */
@@ -49,6 +166,8 @@
     width: 100%; height: 100%;
     border-radius: 2px;
   }
+  /* SVG 摺痕線 — 桌面版隱藏 */
+  .fold-lines { display: none; }
   /* 淡淡的摺線裝飾 */
   .env-body::before {
     content: '';
@@ -60,8 +179,7 @@
     z-index: 1;
   }
 
-  /* 翻蓋 — 封閉時完全隱藏在信封裡面 (scaleY=0)
-     開啟時從頂部「長出來」再向後翻 */
+  /* 翻蓋 — 桌面版封閉時隱藏 (scaleY=0)，手機版直接顯示 */
   .flap {
     position: absolute;
     bottom: 100%; left: 0;
@@ -72,6 +190,7 @@
     transform: scaleY(0);
     z-index: 1;
     overflow: hidden;
+    perspective: 800px;
   }
   .flap canvas {
     position: absolute; inset: 0;
@@ -115,16 +234,36 @@
     pointer-events: none;
     z-index: 2;
   }
-  /* 立體感 — 邊緣陰影 */
+  /* 立體感 — 外圍凸起 + 中心凹陷的「壓印」感 */
   .seal-shadow {
     position: absolute; inset: 0; border-radius: 50%;
     box-shadow:
-      0 3px 8px rgba(0,0,0,0.14),
-      0 1px 3px rgba(0,0,0,0.1),
-      inset 0 2px 3px rgba(255,255,255,0.4),
-      inset 0 -2px 4px rgba(0,0,0,0.08),
-      inset 2px 0 3px rgba(255,255,255,0.15),
-      inset -2px 0 3px rgba(0,0,0,0.05);
+      /* 外部投射陰影 — 壓印凸出紙面 */
+      0 2px 6px rgba(0,0,0,0.12),
+      0 4px 12px rgba(0,0,0,0.06),
+      /* 外圈凸起的亮邊（上方受光）*/
+      inset 0 3px 4px rgba(255,255,255,0.45),
+      inset 0 5px 8px rgba(255,255,255,0.15),
+      /* 外圈凸起的暗邊（下方背光）*/
+      inset 0 -3px 5px rgba(0,0,0,0.12),
+      inset 0 -5px 10px rgba(0,0,0,0.05),
+      /* 左右立體感 */
+      inset 3px 0 4px rgba(255,255,255,0.12),
+      inset -3px 0 4px rgba(0,0,0,0.06);
+    pointer-events: none;
+    z-index: 3;
+  }
+  /* 中心凹陷 — 壓下去的區域比外圈暗 */
+  .seal-center-dip {
+    position: absolute;
+    inset: 15%; border-radius: 50%;
+    box-shadow:
+      /* 凹陷的內陰影 */
+      inset 0 2px 4px rgba(0,0,0,0.08),
+      inset 0 -1px 2px rgba(255,255,255,0.2);
+    background: radial-gradient(circle,
+      rgba(0,0,0,0.03) 0%,
+      transparent 70%);
     pointer-events: none;
     z-index: 3;
   }
@@ -330,13 +469,49 @@
 
   <!-- 信封 -->
   <div class="envelope">
-    <div class="env-body"><canvas id="envTex"></canvas></div>
+    <div class="env-body">
+      <canvas id="envTex"></canvas>
+      <!-- 信封摺痕 SVG -->
+      <svg class="fold-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+          <filter id="foldBlur"><feGaussianBlur stdDeviation="0.12"/></filter>
+          <filter id="foldBlurWide"><feGaussianBlur stdDeviation="0.3"/></filter>
+        </defs>
+        <!--
+          特寫視角：只看到信封中間段，摺痕角度很平緩
+          信封比螢幕寬很多，所以線從螢幕左/右邊緣外延伸進來
+          交會點在螢幕 42% 高度處
+
+          上方兩條線（翻蓋邊緣）：從畫面外左上/右上，以淺角度進入
+          下方兩條線（底折邊緣）：從畫面外左下/右下，以淺角度進入
+        -->
+
+        <!-- 寬柔陰影 -->
+        <line x1="-30" y1="20" x2="50" y2="42" stroke="rgba(0,0,0,0.03)" stroke-width="1.2" filter="url(#foldBlurWide)"/>
+        <line x1="130" y1="20" x2="50" y2="42" stroke="rgba(0,0,0,0.025)" stroke-width="1.0" filter="url(#foldBlurWide)"/>
+        <line x1="-30" y1="80" x2="50" y2="42" stroke="rgba(0,0,0,0.018)" stroke-width="0.8" filter="url(#foldBlurWide)"/>
+        <line x1="130" y1="80" x2="50" y2="42" stroke="rgba(0,0,0,0.015)" stroke-width="0.7" filter="url(#foldBlurWide)"/>
+
+        <!-- 銳利摺痕線 -->
+        <line x1="-30" y1="20" x2="50" y2="42" class="fold-top-l" filter="url(#foldBlur)"/>
+        <line x1="130" y1="20" x2="50" y2="42" class="fold-top-r" filter="url(#foldBlur)"/>
+        <line x1="-30" y1="80" x2="50" y2="42" class="fold-bot-l" filter="url(#foldBlur)"/>
+        <line x1="130" y1="80" x2="50" y2="42" class="fold-bot-r" filter="url(#foldBlur)"/>
+
+        <!-- 高光線 -->
+        <line x1="-30" y1="19.6" x2="50.2" y2="41.6" class="fold-highlight-strong"/>
+        <line x1="130" y1="19.6" x2="49.8" y2="41.6" class="fold-highlight"/>
+        <line x1="-30" y1="80.4" x2="50.2" y2="42.4" class="fold-highlight"/>
+        <line x1="130" y1="80.4" x2="49.8" y2="42.4" class="fold-highlight"/>
+      </svg>
+    </div>
     <div class="flap"><canvas id="flapTex"></canvas></div>
     <div class="seal" id="seal">
       <div class="seal-pulse"></div>
       <div class="seal-disc">
         <canvas id="sealTex"></canvas>
         <div class="seal-shadow"></div>
+        <div class="seal-center-dip"></div>
         <div class="seal-ring"></div>
         <div class="seal-text">Y &amp; W</div>
       </div>
@@ -416,15 +591,28 @@ function makePaperTexture(canvas, w, h, baseR, baseG, baseB) {
   ctx.putImageData(img, 0, 0);
 }
 
-// 信封本體紋理 (340x240 * 2 = 680x480)
-makePaperTexture(document.getElementById('envTex'), 680, 480, 201, 189, 179);
-// 翻蓋紋理 (340x195 * 2 = 680x390)
-makePaperTexture(document.getElementById('flapTex'), 680, 390, 201, 189, 179);
+// 根據螢幕大小決定紋理尺寸
+const isMobile = window.innerWidth <= 480;
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+if (isMobile) {
+  // 手機：信封 = 整個螢幕
+  const sw = Math.ceil(window.innerWidth * dpr);
+  const sh = Math.ceil(window.innerHeight * dpr);
+  makePaperTexture(document.getElementById('envTex'), sw, sh, 201, 189, 179);
+  // 翻蓋撐滿螢幕寬
+  const flapH = Math.ceil(window.innerHeight * 0.55 * dpr);
+  makePaperTexture(document.getElementById('flapTex'), sw, flapH, 201, 189, 179);
+} else {
+  // 桌面：固定尺寸
+  makePaperTexture(document.getElementById('envTex'), 680, 480, 201, 189, 179);
+  makePaperTexture(document.getElementById('flapTex'), 680, 390, 201, 189, 179);
+}
 
 // ======== 蠟封(印泥)紋理 ========
 (function makeWaxSeal() {
   const c = document.getElementById('sealTex');
-  const size = 120; // 60 * 2
+  const size = isMobile ? 176 : 120; // 手機 88*2, 桌面 60*2
   c.width = size; c.height = size;
   const ctx = c.getContext('2d');
   const cx = size/2, cy = size/2, r = size/2;
