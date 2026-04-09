@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Petal Envelope — Wedding Invitation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Noto+Serif+TC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    /* 信封色系 — 米白/象牙 */
+    --env-light: #f0ebe5;
+    --env-mid: #e8e2da;
+    --env-dark: #ddd6cc;
+    --env-shadow: #d0c8bc;
+    --env-w: min(88vw, 380px);
+    --env-h: calc(var(--env-w) * 0.62);
+  }
+
+  body {
+    min-height: 100dvh;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', 'Noto Serif TC', serif;
+    background: #1a1714;
+    overflow: hidden;
+  }
+
+  /* ======== 場景 ======== */
+  .scene {
+    position: relative;
+    width: var(--env-w); height: 100dvh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    perspective: 1200px;
+  }
+
+  /* ======== 信封整體 ======== */
+  .envelope {
+    position: relative;
+    width: var(--env-w);
+    height: var(--env-h);
+    /* 為所有翻瓣的 3D 翻轉提供透視 */
+    perspective: 800px;
+    cursor: pointer;
+    z-index: 2;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.25))
+            drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+    transition: transform 0.8s cubic-bezier(0.4,0,0.2,1) 0.6s,
+                opacity 0.7s ease 0.8s,
+                filter 0.5s ease;
+  }
+
+  /* ======== 信封底板 ======== */
+  .env-base {
+    position: absolute; inset: 0;
+    background: var(--env-mid);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .env-base canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+  /* 微妙的紙張邊緣 */
+  .env-base::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15),
+                inset 0 -1px 0 rgba(0,0,0,0.03);
+    pointer-events: none;
+  }
+
+  /* ======== 共用翻瓣樣式 ======== */
+  .flap {
+    position: absolute;
+    overflow: hidden;
+    backface-visibility: hidden;
+  }
+  .flap canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* ======== 底部翻瓣（信封底折，不動） ======== */
+  .flap-bottom {
+    bottom: 0; left: 5%; right: 5%;
+    height: 38%;
+    clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    background: var(--env-dark);
+    z-index: 1;
+  }
+  .flap-bottom::after {
+    content: '';
+    position: absolute; inset: 0;
+    clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.02), rgba(0,0,0,0.05));
+    pointer-events: none;
+  }
+
+  /* ======== 左翻瓣 ======== */
+  .flap-left {
+    left: 0; top: 2%; bottom: 2%;
+    width: 52%;
+    /* 圓弧形狀 — 用 ellipse clip-path */
+    clip-path: ellipse(96% 50% at 0% 50%);
+    background: var(--env-mid);
+    transform-origin: left center;
+    z-index: 2;
+    transition: transform 0.7s cubic-bezier(0.4,0,0.2,1) 0.15s;
+  }
+  .flap-left::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to right, rgba(255,255,255,0.04), rgba(0,0,0,0.02) 60%, rgba(0,0,0,0.05));
+    pointer-events: none;
+  }
+  /* 左翻瓣右邊緣的陰影 */
+  .flap-left::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; width: 12px;
+    background: linear-gradient(to left, rgba(0,0,0,0.06), transparent);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ======== 右翻瓣 ======== */
+  .flap-right {
+    right: 0; top: 2%; bottom: 2%;
+    width: 52%;
+    clip-path: ellipse(96% 50% at 100% 50%);
+    background: var(--env-mid);
+    transform-origin: right center;
+    z-index: 3;
+    transition: transform 0.7s cubic-bezier(0.4,0,0.2,1) 0.1s;
+  }
+  .flap-right::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to left, rgba(255,255,255,0.04), rgba(0,0,0,0.02) 60%, rgba(0,0,0,0.05));
+    pointer-events: none;
+  }
+  .flap-right::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0; width: 12px;
+    background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ======== 上翻蓋（主蓋） ======== */
+  .flap-top {
+    top: 0; left: 0; right: 0;
+    height: 72%;
+    /* 大圓弧 — 從頂部蓋下來 */
+    clip-path: ellipse(54% 100% at 50% 0%);
+    background: var(--env-light);
+    transform-origin: top center;
+    z-index: 4;
+    transition: transform 0.9s cubic-bezier(0.32,0,0.15,1) 0s;
+  }
+  .flap-top::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(to bottom,
+        rgba(255,255,255,0.06) 0%,
+        transparent 30%,
+        rgba(0,0,0,0.02) 80%,
+        rgba(0,0,0,0.05) 100%);
+    pointer-events: none;
+  }
+  /* 底部邊緣陰影 */
+  .flap-top::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0; height: 16px;
+    background: linear-gradient(to top, rgba(0,0,0,0.07), transparent);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ======== 愛心扣 ======== */
+  .heart-clasp {
+    position: absolute;
+    /* 放在上翻蓋底部邊緣、信封中央 */
+    top: calc(var(--env-h) * 0.72 - 14px);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px; height: 28px;
+    z-index: 10;
+    cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1),
+                opacity 0.3s ease;
+  }
+  /* CSS 愛心形狀 */
+  .heart-shape {
+    position: relative;
+    width: 100%; height: 100%;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.12));
+  }
+  .heart-shape::before,
+  .heart-shape::after {
+    content: '';
+    position: absolute;
+    top: 0; width: 14px; height: 22px;
+    border-radius: 14px 14px 0 0;
+    background: linear-gradient(to bottom, #f2ede7, #e8e1d8);
+  }
+  .heart-shape::before {
+    left: 0;
+    transform: rotate(-45deg);
+    transform-origin: bottom right;
+  }
+  .heart-shape::after {
+    right: 0;
+    transform: rotate(45deg);
+    transform-origin: bottom left;
+  }
+  /* 愛心上的高光 */
+  .heart-highlight {
+    position: absolute;
+    top: 2px; left: 6px;
+    width: 8px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: rotate(-25deg);
+    z-index: 1;
+    pointer-events: none;
+  }
+  /* 愛心的輕微陰影/厚度 */
+  .heart-depth {
+    position: absolute;
+    inset: 0;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1));
+    pointer-events: none;
+  }
+  /* 呼吸光 */
+  .heart-pulse {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px solid rgba(200,190,178,0.25);
+    animation: heartPulse 2.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes heartPulse {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.2); opacity: 0; }
+  }
+
+  /* ======== 卡片 ======== */
+  .card {
+    position: absolute;
+    width: calc(var(--env-w) - 24px);
+    padding: 36px 28px;
+    border-radius: 2px;
+    background-color: #f5efe8;
+    background-image: url('cream-paper.png');
+    display: flex; flex-direction: column; align-items: center;
+    opacity: 0; z-index: 1; pointer-events: none;
+    transform: translateY(30px) scale(0.92);
+    transition: opacity 0.9s ease 1s,
+                transform 1s cubic-bezier(0.25,0.46,0.45,0.94) 1s,
+                box-shadow 0.8s ease 1.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .card-border {
+    position: absolute; inset: 12px;
+    border: 1px solid rgba(190,160,115,0.12);
+    pointer-events: none;
+  }
+  .card-border::before {
+    content: ''; position: absolute; inset: 4px;
+    border: 0.5px solid rgba(190,160,115,0.06);
+  }
+  .card-ornament {
+    width: 44px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(180,150,110,0.2), transparent);
+    margin-bottom: 22px;
+  }
+  .card-names {
+    font-size: 25px; font-weight: 300;
+    color: #4a3830; text-align: center;
+    line-height: 1.8; letter-spacing: 4px;
+  }
+  .card-and {
+    font-style: italic; font-size: 15px;
+    color: rgba(180,150,110,0.4);
+    letter-spacing: 2px; font-weight: 400;
+  }
+  .card-details {
+    margin-top: 22px; text-align: center;
+    color: #7a6558; font-size: 12px;
+    font-weight: 300; letter-spacing: 2px; line-height: 2.2;
+  }
+  .card-footer {
+    font-size: 9px; margin-top: 24px;
+    color: rgba(138,112,96,0.2);
+    letter-spacing: 4px; text-transform: uppercase;
+  }
+
+  /* ======== 提示文字 ======== */
+  .hint-text {
+    position: absolute;
+    bottom: max(60px, 10vh);
+    text-align: center;
+    color: rgba(200,190,178,0.4);
+    font-size: 11px; letter-spacing: 3px;
+    animation: fadeHint 3s ease-in-out infinite;
+    transition: opacity 0.4s ease;
+    z-index: 5;
+  }
+  @keyframes fadeHint {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.5; }
+  }
+
+  /* ======== Close ======== */
+  .close-btn {
+    position: fixed; top: 24px; right: 24px;
+    background: none; border: none;
+    color: rgba(200,190,178,0.3);
+    font-size: 12px; letter-spacing: 3px;
+    cursor: pointer; opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease 1.8s;
+    font-family: 'Cormorant Garamond', serif; z-index: 20;
+  }
+  .close-btn:hover { color: rgba(200,190,178,0.5); }
+
+  /* ========================================================
+     開啟動畫 — 四階段
+     Phase 1: 愛心扣浮起消失
+     Phase 2: 上蓋向後翻開 (rotateX)
+     Phase 3: 左右翻瓣展開 (rotateY)
+     Phase 4: 信封退場 + 卡片進場
+     ======================================================== */
+
+  /* Phase 1: 愛心扣 */
+  .scene.phase-1 .heart-clasp {
+    transform: translate(-50%, -50%) scale(0.2) translateY(-20px);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .scene.phase-1 .heart-pulse { animation: none; opacity: 0; }
+
+  /* Phase 2: 上蓋翻開 */
+  .scene.phase-2 .flap-top {
+    transform: rotateX(170deg);
+  }
+
+  /* Phase 3: 左右翻瓣展開 */
+  .scene.phase-3 .flap-left {
+    transform: rotateY(-160deg);
+  }
+  .scene.phase-3 .flap-right {
+    transform: rotateY(160deg);
+  }
+
+  /* Phase 4: 信封退場 + 卡片進場 */
+  .scene.phase-4 .envelope {
+    transform: translateY(50px) scale(0.85);
+    opacity: 0;
+    pointer-events: none;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1));
+  }
+  .scene.phase-4 .heart-clasp { display: none; }
+  .scene.phase-4 .card {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    z-index: 10;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12),
+                0 2px 8px rgba(0,0,0,0.06);
+  }
+  .scene.phase-4 .hint-text { opacity: 0; pointer-events: none; }
+  .scene.phase-4 .close-btn { opacity: 1; pointer-events: auto; }
+
+  /* ======== 手機版微調 ======== */
+  @media (max-width: 480px) {
+    :root {
+      --env-w: 88vw;
+    }
+    .heart-clasp {
+      width: 32px; height: 32px;
+    }
+    .heart-shape::before,
+    .heart-shape::after {
+      width: 16px; height: 25px;
+      border-radius: 16px 16px 0 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<button class="close-btn" id="closeBtn">CLOSE</button>
+
+<div class="scene" id="scene">
+  <!-- 卡片 -->
+  <div class="card" id="card">
+    <div class="card-border"></div>
+    <div class="card-ornament"></div>
+    <div class="card-names">
+      YU CHEN
+      <div class="card-and">&amp;</div>
+      WEI TING
+    </div>
+    <div class="card-details">
+      <div>二〇二六年 十月 十七日</div>
+      <div>週六 午間十二時</div>
+      <div style="margin-top:8px">台北 君悅酒店</div>
+      <div>Grand Ballroom</div>
+    </div>
+    <div class="card-footer">WEDDING INVITATION</div>
+  </div>
+
+  <!-- 信封 -->
+  <div class="envelope" id="envelope">
+    <!-- 底板 -->
+    <div class="env-base">
+      <canvas id="baseTex"></canvas>
+    </div>
+
+    <!-- 底部翻瓣（固定不動） -->
+    <div class="flap flap-bottom">
+      <canvas id="bottomTex"></canvas>
+    </div>
+
+    <!-- 左翻瓣 -->
+    <div class="flap flap-left">
+      <canvas id="leftTex"></canvas>
+    </div>
+
+    <!-- 右翻瓣 -->
+    <div class="flap flap-right">
+      <canvas id="rightTex"></canvas>
+    </div>
+
+    <!-- 上翻蓋（主蓋） -->
+    <div class="flap flap-top">
+      <canvas id="topTex"></canvas>
+    </div>
+
+    <!-- 愛心扣 -->
+    <div class="heart-clasp" id="heartClasp">
+      <div class="heart-pulse"></div>
+      <div class="heart-shape">
+        <div class="heart-highlight"></div>
+      </div>
+      <div class="heart-depth"></div>
+    </div>
+  </div>
+
+  <div class="hint-text">輕觸愛心開啟</div>
+</div>
+
+<script>
+// ======== 紙張紋理 ========
+function makePaperTexture(canvas, w, h, baseR, baseG, baseB) {
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = `rgb(${baseR},${baseG},${baseB})`;
+  ctx.fillRect(0, 0, w, h);
+
+  const g = ctx.createLinearGradient(0, 0, w * 0.4, h);
+  g.addColorStop(0, 'rgba(255,255,255,0.03)');
+  g.addColorStop(1, 'rgba(0,0,0,0.02)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+
+  // 噪點
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * 18;
+    d[i] += n; d[i+1] += n; d[i+2] += n;
+  }
+  // 纖維
+  for (let f = 0; f < 800; f++) {
+    const fx = Math.random() * w;
+    const fy = Math.random() * h;
+    const len = 6 + Math.random() * 28;
+    const br = (Math.random() - 0.5) * 14;
+    for (let p = 0; p < len; p++) {
+      const px = Math.floor(fx + p + (Math.random() - 0.5) * 2);
+      const py = Math.floor(fy + (Math.random() - 0.5) * 1.5);
+      if (px >= 0 && px < w && py >= 0 && py < h) {
+        const idx = (py * w + px) * 4;
+        d[idx] += br; d[idx+1] += br; d[idx+2] += br;
+      }
+    }
+  }
+  // 斑塊
+  for (let b = 0; b < 30; b++) {
+    const bx = Math.random() * w;
+    const by = Math.random() * h;
+    const bR = 10 + Math.random() * 30;
+    const bBr = (Math.random() - 0.5) * 8;
+    for (let dy = -bR; dy < bR; dy++) {
+      for (let dx = -bR; dx < bR; dx++) {
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < bR) {
+          const px = Math.floor(bx + dx);
+          const py = Math.floor(by + dy);
+          if (px >= 0 && px < w && py >= 0 && py < h) {
+            const falloff = 1 - dist / bR;
+            const idx = (py * w + px) * 4;
+            const v = bBr * falloff * falloff;
+            d[idx] += v; d[idx+1] += v; d[idx+2] += v;
+          }
+        }
+      }
+    }
+  }
+
+  ctx.putImageData(img, 0, 0);
+}
+
+// 計算信封像素尺寸
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+const envEl = document.getElementById('envelope');
+const envW = Math.ceil(envEl.offsetWidth * dpr);
+const envH = Math.ceil(envEl.offsetHeight * dpr);
+
+// 各層紋理 — 略微不同的色調增加層次感
+makePaperTexture(document.getElementById('baseTex'), envW, envH, 228, 222, 214);
+makePaperTexture(document.getElementById('bottomTex'), envW, Math.ceil(envH * 0.38), 221, 214, 204);
+makePaperTexture(document.getElementById('leftTex'), Math.ceil(envW * 0.52), envH, 232, 226, 218);
+makePaperTexture(document.getElementById('rightTex'), Math.ceil(envW * 0.52), envH, 232, 226, 218);
+makePaperTexture(document.getElementById('topTex'), envW, Math.ceil(envH * 0.72), 240, 235, 229);
+
+// ======== 互動 — 四階段 ========
+const scene = document.getElementById('scene');
+const heart = document.getElementById('heartClasp');
+const closeBtn = document.getElementById('closeBtn');
+
+function openEnvelope() {
+  // Phase 1: 愛心消失
+  scene.classList.add('phase-1');
+
+  // Phase 2: 上蓋翻開 (300ms 後)
+  setTimeout(() => scene.classList.add('phase-2'), 300);
+
+  // Phase 3: 左右展開 (900ms 後)
+  setTimeout(() => scene.classList.add('phase-3'), 900);
+
+  // Phase 4: 信封退場 + 卡片進場 (1600ms 後)
+  setTimeout(() => scene.classList.add('phase-4'), 1600);
+}
+
+function closeEnvelope() {
+  scene.classList.remove('phase-4');
+  setTimeout(() => scene.classList.remove('phase-3'), 100);
+  setTimeout(() => scene.classList.remove('phase-2'), 400);
+  setTimeout(() => scene.classList.remove('phase-1'), 800);
+}
+
+heart.addEventListener('click', e => {
+  e.stopPropagation();
+  openEnvelope();
+});
+
+closeBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  closeEnvelope();
+});
+</script>
+</body>
+</html>
