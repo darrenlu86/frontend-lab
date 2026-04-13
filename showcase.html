@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envelope Showcase — Material Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+TC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    font-family: 'Playfair Display', 'Noto Serif TC', serif;
+    background-color: #1a1816;
+    color: #e8ddd0;
+  }
+
+  .header {
+    text-align: center;
+    padding: 60px 20px 40px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 6px;
+    color: #e8ddd0;
+    margin-bottom: 12px;
+  }
+  .header p {
+    font-size: 13px;
+    color: rgba(232,221,208,0.45);
+    letter-spacing: 2px;
+    font-weight: 300;
+  }
+  .header .divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212,175,133,0.4), transparent);
+    margin: 20px auto 0;
+  }
+
+  .gallery {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 24px 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 32px;
+  }
+
+  .card {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #242220;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+
+  .card-preview {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 440 / 310;
+    overflow: hidden;
+  }
+  .card-preview iframe {
+    width: 880px;
+    height: 620px;
+    border: none;
+    transform: scale(0.5);
+    transform-origin: top left;
+    pointer-events: none;
+  }
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+
+  .card-info {
+    padding: 20px 24px 24px;
+  }
+  .card-info h3 {
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    color: #e8ddd0;
+  }
+  .card-info .subtitle {
+    font-size: 12px;
+    color: rgba(232,221,208,0.5);
+    letter-spacing: 1px;
+    font-weight: 300;
+    font-style: italic;
+  }
+  .card-info .tags {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(212,175,133,0.2);
+    color: rgba(232,221,208,0.55);
+    letter-spacing: 0.5px;
+  }
+
+  .section-label {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 8px;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: rgba(232,221,208,0.3);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 480px) {
+    .header { padding: 40px 16px 24px; }
+    .header h1 { font-size: 22px; letter-spacing: 4px; }
+    .gallery { padding: 12px 16px 60px; gap: 20px; grid-template-columns: 1fr; }
+    .card-info { padding: 16px 20px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>ENVELOPE GALLERY</h1>
+  <p>婚禮信封材質展示</p>
+  <div class="divider"></div>
+</div>
+
+<div class="section-label">Original Collection</div>
+<div class="gallery" id="originalGallery"></div>
+
+<div class="section-label">Warm &amp; Dreamy Collection</div>
+<div class="gallery" id="warmGallery"></div>
+
+<script>
+const originals = [
+  { file: 'index.html', name: 'Classic Paper', subtitle: '經典紙張信封', tags: ['紙纖維', '蠟封印泥', '3D翻蓋'] },
+  { file: 'petal-envelope.html', name: 'Petal', subtitle: '雙半圓花瓣信封', tags: ['愛心扣', '三階段動畫'] },
+  { file: 'leather-envelope.html', name: 'Leather', subtitle: '深棕皮革信封', tags: ['皮革毛孔', '金箔蠟封', '縫線'] },
+  { file: 'wood-envelope.html', name: 'Wood', subtitle: '木紋質感信封', tags: ['年輪紋理', '燒印蠟封', '木框'] },
+  { file: 'velvet-envelope.html', name: 'Velvet', subtitle: '天鵝絨信封', tags: ['絨面紋理', '珍珠蠟封', '金邊'] },
+];
+
+const warmDreamy = [
+  { file: 'rosegold-envelope.html', name: 'Rose Gold', subtitle: '玫瑰金箔信封', tags: ['金屬刷紋', '閃光點', '珍珠蠟封'] },
+  { file: 'sunset-envelope.html', name: 'Sunset', subtitle: '晚霞漸層信封', tags: ['多層漸層', '雲隙光', '暖光蠟封'] },
+  { file: 'linen-envelope.html', name: 'Linen', subtitle: '亞麻金線信封', tags: ['經緯織紋', '金線', '金蠟封'] },
+  { file: 'cloud-envelope.html', name: 'Cloud', subtitle: '金時雲霧信封', tags: ['雲團漸層', '光源擴散', '發光蠟封'] },
+  { file: 'flower-envelope.html', name: 'Pressed Flower', subtitle: '花押紙信封', tags: ['花瓣葉片', '老化紙', '植物紋蠟封'] },
+  { file: 'silk-envelope.html', name: 'Silk', subtitle: '絲綢光澤信封', tags: ['斜向織紋', '光帶', '玫瑰金蠟封'] },
+  { file: 'marble-envelope.html', name: 'Marble', subtitle: '暖色大理石信封', tags: ['金脈紋理', '色塊', '大理石蠟封'] },
+  { file: 'watercolor-envelope.html', name: 'Watercolor', subtitle: '水彩暈染信封', tags: ['暈色池', '羽化邊緣', '暈染蠟封'] },
+];
+
+function createCard(item) {
+  const card = document.createElement('a');
+  card.className = 'card';
+  card.href = item.file;
+  card.innerHTML = `
+    <div class="card-preview">
+      <iframe src="${item.file}" loading="lazy" sandbox="allow-scripts" tabindex="-1"></iframe>
+      <div class="card-overlay"></div>
+    </div>
+    <div class="card-info">
+      <h3>${item.name}</h3>
+      <div class="subtitle">${item.subtitle}</div>
+      <div class="tags">${item.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+  `;
+  return card;
+}
+
+const origGallery = document.getElementById('originalGallery');
+originals.forEach(item => origGallery.appendChild(createCard(item)));
+
+const warmGallery = document.getElementById('warmGallery');
+warmDreamy.forEach(item => warmGallery.appendChild(createCard(item)));
+</script>
+</body>
+</html>

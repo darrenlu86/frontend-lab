@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Linen Envelope — Wedding Invitation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+TC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100dvh;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', 'Noto Serif TC', serif;
+    background-color: #2e2820;
+    overflow: hidden;
+  }
+
+  .scene {
+    position: relative;
+    width: 440px; height: 100dvh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+
+  .envelope-outer {
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25))
+            drop-shadow(0 8px 24px rgba(0,0,0,0.15));
+    transition: transform 0.8s cubic-bezier(0.4,0,0.2,1),
+                opacity 0.7s ease;
+  }
+
+  .envelope {
+    position: relative;
+    width: 440px; height: 310px;
+    border-radius: 4px;
+    z-index: 2;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+  }
+
+  .env-body {
+    width: 100%; height: 100%;
+    position: relative;
+    background-color: #E8D7C3;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .env-body canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+
+  .weave-overlay {
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg,
+        transparent 0px, transparent 3px,
+        rgba(180,150,110,0.08) 3px, rgba(180,150,110,0.08) 4px),
+      repeating-linear-gradient(90deg,
+        transparent 0px, transparent 4px,
+        rgba(160,130,90,0.06) 4px, rgba(160,130,90,0.06) 5px);
+    pointer-events: none; z-index: 1;
+  }
+  .gold-threads {
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(35deg,
+        transparent 0px, transparent 18px,
+        rgba(212,175,100,0.12) 18px, rgba(212,175,100,0.12) 19px,
+        transparent 19px, transparent 36px);
+    pointer-events: none; z-index: 1;
+  }
+
+  /* Thread-like border (replaces stitching) */
+  .thread-border {
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(180,150,100,0.2);
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .thread-border::before {
+    content: '';
+    position: absolute; inset: -1px;
+    border: 0.5px solid rgba(180,150,100,0.1);
+    border-radius: 3px;
+  }
+
+  .flap-shadow {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    transition: opacity 1.5s ease;
+  }
+  .scene.phase-2 .flap-shadow { opacity: 0; }
+
+  .fold-svg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  .env-flap-wrapper {
+    position: absolute;
+    inset: 0;
+    transform-origin: center top;
+    transform-style: preserve-3d;
+    transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity 0.8s ease 0.6s;
+  }
+  .env-flap {
+    position: absolute;
+    inset: 0;
+    background-color: #D4C4B0;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 28%, 50% 42%, 0% 28%);
+    overflow: hidden;
+  }
+  .env-flap canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+  .env-flap::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(135deg,
+        rgba(255,230,180,0.12) 0%,
+        rgba(255,230,180,0.04) 40%,
+        rgba(0,0,0,0.08) 70%,
+        rgba(0,0,0,0.14) 100%),
+      linear-gradient(to bottom,
+        rgba(255,230,180,0.06) 0%,
+        rgba(0,0,0,0.04) 38%,
+        rgba(0,0,0,0.10) 42%);
+    pointer-events: none; z-index: 1;
+    transition: background 0.8s ease;
+  }
+  .scene.phase-1 .env-flap::before {
+    background:
+      linear-gradient(135deg,
+        rgba(255,230,180,0.08) 0%,
+        rgba(0,0,0,0.10) 30%,
+        rgba(0,0,0,0.22) 70%,
+        rgba(0,0,0,0.32) 100%),
+      linear-gradient(to bottom,
+        rgba(0,0,0,0.05) 0%,
+        rgba(0,0,0,0.18) 30%,
+        rgba(0,0,0,0.28) 42%);
+  }
+
+  /* Thread border on flap */
+  .flap-thread-border {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(2% 2%, 98% 2%, 98% 26%, 50% 39%, 2% 26%);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .flap-thread-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(3% 3%, 97% 3%, 97% 27%, 50% 40%, 3% 27%);
+    border: none;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 6px,
+        rgba(180,150,100,0.15) 6px,
+        rgba(180,150,100,0.15) 7px
+      );
+    mask: linear-gradient(to bottom, black 0%, black 26%, transparent 42%);
+    -webkit-mask: linear-gradient(to bottom, black 0%, black 26%, transparent 42%);
+  }
+
+  /* ======== Gold wax seal ======== */
+  .seal {
+    position: absolute;
+    top: 42%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 88px; height: 88px;
+    cursor: pointer;
+    transition: opacity 0.8s ease 0.5s;
+  }
+  .seal::before {
+    content: '';
+    position: absolute; inset: 0; border-radius: 50%;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.3),
+      1px 2px 4px rgba(0,0,0,0.25),
+      2px 4px 8px rgba(0,0,0,0.2),
+      3px 6px 16px rgba(0,0,0,0.15);
+    pointer-events: none;
+  }
+  .scene.phase-1 .seal-pulse { animation: none; opacity: 0; }
+  .scene.phase-2 .seal { opacity: 0; transition: opacity 0.5s ease; }
+
+  .seal-disc {
+    width: 100%; height: 100%; border-radius: 50%;
+    position: relative; overflow: hidden;
+  }
+  .seal-disc canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+  }
+  .seal-disc::after {
+    content: '';
+    position: absolute; inset: 0; border-radius: 50%;
+    background:
+      radial-gradient(ellipse at 30% 25%, rgba(255,240,180,0.35) 0%, transparent 45%),
+      radial-gradient(ellipse at 70% 75%, rgba(0,0,0,0.08) 0%, transparent 40%);
+    pointer-events: none; z-index: 2;
+  }
+  .seal-shadow {
+    position: absolute; inset: 9px; border-radius: 50%;
+    box-shadow:
+      inset 5px 5px 6px -2px rgba(0,0,0,0.35),
+      inset 3px 3px 4px -1px rgba(0,0,0,0.2);
+    pointer-events: none; z-index: 3;
+  }
+  .seal-center-dip {
+    position: absolute; inset: 18%; border-radius: 50%;
+    pointer-events: none; z-index: 3;
+  }
+  .seal-ring {
+    position: absolute; inset: 5px; border-radius: 50%;
+    border: 0.5px solid rgba(255,220,140,0.3);
+    pointer-events: none; z-index: 4;
+  }
+  .seal-ring::before {
+    content: '';
+    position: absolute; inset: 4px; border-radius: 50%;
+    border: 0.5px solid rgba(100,70,30,0.15);
+  }
+  .seal-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; font-weight: 500; letter-spacing: 0.5px;
+    font-style: italic;
+    color: rgba(180,150,100,0.3);
+    text-shadow:
+      -1px -1px 0 rgba(255,230,160,0.7),
+      1px 1px 1px rgba(60,40,10,0.4),
+      -1px -1px 2px rgba(255,230,160,0.3),
+      1px 1px 3px rgba(60,40,10,0.2);
+    z-index: 5;
+  }
+  .seal-pulse {
+    position: absolute; inset: -8px; border-radius: 50%;
+    border: 1px solid rgba(210,180,120,0.25);
+    animation: pulse 2.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.12); opacity: 0; }
+  }
+
+  .env-text {
+    text-align: center;
+    color: rgba(220,190,140,0.75);
+    font-size: 13.5px; font-weight: 400;
+    letter-spacing: 3px; margin-top: 24px;
+    transition: opacity 0.5s ease;
+  }
+  .tap-hint {
+    text-align: center; font-size: 10.5px;
+    color: rgba(220,190,140,0.45);
+    letter-spacing: 2px; margin-top: 8px;
+    animation: fadeHint 3s ease-in-out infinite;
+    transition: opacity 0.5s ease;
+  }
+  @keyframes fadeHint {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+  }
+
+  .card {
+    position: absolute;
+    width: 396px; padding: 40px 32px;
+    border-radius: 2px;
+    background-color: #faf6f0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    display: flex; flex-direction: column; align-items: center;
+    opacity: 0; z-index: 0; pointer-events: none;
+    transform: translateY(20px) scale(0.96);
+    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .card-border {
+    position: absolute; inset: 12px;
+    border: 1px solid rgba(180,150,100,0.15);
+    pointer-events: none;
+  }
+  .card-border::before {
+    content: ''; position: absolute; inset: 4px;
+    border: 0.5px solid rgba(180,150,100,0.08);
+  }
+  .card-ornament {
+    width: 44px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(180,150,100,0.3), transparent);
+    margin-bottom: 22px;
+  }
+  .card-names {
+    font-size: 25px; font-weight: 400;
+    color: #3a2a1e; text-align: center;
+    line-height: 1.8; letter-spacing: 4px;
+  }
+  .card-and {
+    font-style: italic; font-size: 15px;
+    color: rgba(180,150,100,0.45);
+    letter-spacing: 2px; font-weight: 400;
+  }
+  .card-details {
+    margin-top: 22px; text-align: center;
+    color: #6a5545; font-size: 12px;
+    font-weight: 400; letter-spacing: 2px; line-height: 2.2;
+  }
+  .card-footer {
+    font-size: 9px; margin-top: 24px;
+    color: rgba(140,110,80,0.25);
+    letter-spacing: 4px; text-transform: uppercase;
+  }
+
+  .close-btn {
+    position: fixed; top: 24px; right: 24px;
+    background: none; border: none;
+    color: rgba(220,190,140,0.35);
+    font-size: 12px; letter-spacing: 3px;
+    cursor: pointer; opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+    font-family: 'Playfair Display', serif; z-index: 20;
+  }
+  .close-btn:hover { color: rgba(220,190,140,0.6); }
+
+  /* Animation Phases */
+  .scene.phase-1 .fold-upper { opacity: 0; }
+  .scene.phase-1 .env-flap-wrapper { transform: rotateX(40deg); }
+
+  .scene.phase-2 .env-flap-wrapper { transform: rotateX(160deg); opacity: 0; }
+  .scene.phase-2 .envelope-outer { transform: translateY(20px) scale(0.96); opacity: 0; }
+  .scene.phase-2 .env-text,
+  .scene.phase-2 .tap-hint { opacity: 0; }
+
+  .scene.phase-3 .card { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; z-index: 10; }
+  .scene.phase-3 .close-btn { opacity: 1; pointer-events: auto; }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    body { background-color: #E8D7C3; }
+    .scene { width: 100vw; }
+    .envelope-outer { position: fixed; inset: 0; width: 100vw; height: 100dvh; filter: none; }
+    .envelope { width: 100%; height: 100%; border-radius: 0; perspective: 1200px; }
+    .env-body canvas { border-radius: 0; }
+    .thread-border { inset: 12px; }
+    .seal { width: 88px !important; height: 88px !important; }
+    .scene.phase-1 .env-flap-wrapper { transform: rotateX(35deg); }
+    .scene.phase-2 .env-flap-wrapper { transform: rotateX(150deg); opacity: 0; }
+    .scene.phase-2 .envelope-outer { opacity: 0; }
+    .env-text { position: fixed !important; bottom: 16vh; left: 0; right: 0; margin-top: 0 !important; z-index: 6; font-size: 14px; }
+    .tap-hint { position: fixed !important; bottom: 12vh; left: 0; right: 0; margin-top: 0 !important; z-index: 6; }
+    .card { width: 88vw; max-width: 360px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="close-btn" id="closeBtn">CLOSE</button>
+
+<div class="scene" id="scene">
+  <div class="card" id="card">
+    <div class="card-border"></div>
+    <div class="card-ornament"></div>
+    <div class="card-names">
+      YU CHEN
+      <div class="card-and">&amp;</div>
+      WEI TING
+    </div>
+    <div class="card-details">
+      <div>二〇二六年 十月 十七日</div>
+      <div>週六 午間十二時</div>
+      <div style="margin-top:8px">台北 君悅酒店</div>
+      <div>Grand Ballroom</div>
+    </div>
+    <div class="card-footer">WEDDING INVITATION</div>
+  </div>
+
+  <div class="envelope-outer">
+  <div class="envelope">
+    <div class="env-body">
+      <canvas id="envTex"></canvas>
+      <div class="weave-overlay"></div>
+      <div class="gold-threads"></div>
+      <div class="thread-border"></div>
+    </div>
+
+    <svg class="flap-shadow" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs>
+        <filter id="flapShadowBlur"><feGaussianBlur stdDeviation="2.2"/></filter>
+        <linearGradient id="flapShadowGrad" x1="0" y1="0" x2="1" y2="0.3">
+          <stop offset="0%" stop-color="rgba(0,0,0,0.0)"/>
+          <stop offset="25%" stop-color="rgba(0,0,0,0.06)"/>
+          <stop offset="50%" stop-color="rgba(0,0,0,0.22)"/>
+          <stop offset="75%" stop-color="rgba(0,0,0,0.42)"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0.55)"/>
+        </linearGradient>
+      </defs>
+      <polygon points="0,0 100,0 100,28 50,42 0,28"
+               fill="url(#flapShadowGrad)" filter="url(#flapShadowBlur)"/>
+    </svg>
+
+    <svg class="fold-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs>
+        <filter id="foldBlur"><feGaussianBlur stdDeviation="0.15"/></filter>
+        <filter id="foldShadow"><feGaussianBlur stdDeviation="0.4"/></filter>
+      </defs>
+      <g class="fold-upper" style="transition: opacity 0.5s ease;">
+        <!-- Wide soft shadow -->
+        <line x1="-30" y1="20" x2="50" y2="42" stroke="rgba(0,0,0,0.12)" stroke-width="1.5" filter="url(#foldShadow)"/>
+        <line x1="130" y1="20" x2="50" y2="42" stroke="rgba(0,0,0,0.10)" stroke-width="1.2" filter="url(#foldShadow)"/>
+        <!-- Sharp crease -->
+        <line x1="-30" y1="20" x2="50" y2="42" stroke="rgba(200,170,120,0.10)" stroke-width="0.45" filter="url(#foldBlur)"/>
+        <line x1="130" y1="20" x2="50" y2="42" stroke="rgba(200,170,120,0.08)" stroke-width="0.4" filter="url(#foldBlur)"/>
+        <!-- Highlight -->
+        <line x1="-30" y1="19.5" x2="50.2" y2="41.5" stroke="rgba(210,180,130,0.12)" stroke-width="0.3"/>
+        <line x1="130" y1="19.5" x2="49.8" y2="41.5" stroke="rgba(210,180,130,0.10)" stroke-width="0.25"/>
+      </g>
+      <g class="fold-lower">
+        <line x1="-30" y1="80" x2="50" y2="42" stroke="rgba(0,0,0,0.08)" stroke-width="0.8" filter="url(#foldShadow)"/>
+        <line x1="130" y1="80" x2="50" y2="42" stroke="rgba(0,0,0,0.06)" stroke-width="0.7" filter="url(#foldShadow)"/>
+        <line x1="-30" y1="80" x2="50" y2="42" stroke="rgba(200,170,120,0.08)" stroke-width="0.25" filter="url(#foldBlur)"/>
+        <line x1="130" y1="80" x2="50" y2="42" stroke="rgba(200,170,120,0.06)" stroke-width="0.2" filter="url(#foldBlur)"/>
+        <line x1="-30" y1="80.4" x2="50.2" y2="42.4" stroke="rgba(210,180,130,0.10)" stroke-width="0.2"/>
+        <line x1="130" y1="80.4" x2="49.8" y2="42.4" stroke="rgba(210,180,130,0.08)" stroke-width="0.18"/>
+      </g>
+    </svg>
+
+    <div class="env-flap-wrapper">
+      <div class="env-flap">
+        <canvas id="flapTex"></canvas>
+        <div class="flap-thread-border"></div>
+      </div>
+      <div class="seal" id="seal">
+        <div class="seal-pulse"></div>
+        <div class="seal-disc">
+          <canvas id="sealTex"></canvas>
+          <div class="seal-shadow"></div>
+          <div class="seal-center-dip"></div>
+          <div class="seal-ring"></div>
+          <div class="seal-text">Y &amp; W</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="env-text">這份邀請 專屬於你</div>
+  <div class="tap-hint">輕觸封印開啟</div>
+</div>
+
+<script>
+// ======== Linen weave texture ========
+function makeLinenTexture(canvas, w, h, baseR, baseG, baseB) {
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  // Base: slightly uneven warm beige gradient
+  const bg = ctx.createLinearGradient(0, 0, w * 0.3, h);
+  bg.addColorStop(0, `rgb(${baseR+4},${baseG+3},${baseB+2})`);
+  bg.addColorStop(1, `rgb(${baseR-3},${baseG-3},${baseB-2})`);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+
+  // Layer 5 helper: zone-based pseudorandom
+  function pseudoRandom(x, y) {
+    const v = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+    return v - Math.floor(v);
+  }
+
+  // Process all pixels
+  for (let i = 0; i < d.length; i += 4) {
+    const px = (i / 4) % w;
+    const py = Math.floor((i / 4) / w);
+
+    // Layer 1: Horizontal + vertical linen weave pattern
+    const hWeave = (py % 3 === 0) ? -8 : (py % 3 === 1) ? 8 : 0;
+    const vWeave = (px % 4 === 0) ? -8 : (px % 4 === 2) ? 8 : 0;
+    d[i] += hWeave + vWeave;
+    d[i+1] += hWeave + vWeave;
+    d[i+2] += (hWeave + vWeave) * 0.8;
+
+    // Layer 2: Directional noise (horizontal warp, vertical weft)
+    const hNoise = (Math.random() - 0.5) * 10; // horizontal warp noise
+    const vNoise = (Math.random() - 0.5) * 6;  // vertical weft noise (lighter)
+    const dirNoise = (py % 2 === 0) ? hNoise : vNoise;
+    d[i] += dirNoise;
+    d[i+1] += dirNoise * 0.95;
+    d[i+2] += dirNoise * 0.85;
+
+    // Layer 5: Micro-texture using zone-based pseudorandom noise
+    const zoneNoise = (pseudoRandom(px, py) - 0.5) * 8;
+    d[i] += zoneNoise;
+    d[i+1] += zoneNoise * 0.9;
+    d[i+2] += zoneNoise * 0.8;
+
+    // Layer 6: Variable luminosity gradient (left-top brighter)
+    const luminosity = (1 - px / w) * (1 - py / h) * 8;
+    d[i] += luminosity;
+    d[i+1] += luminosity * 0.95;
+    d[i+2] += luminosity * 0.85;
+  }
+
+  // Layer 3: Gold threads — scattered diagonal lines
+  for (let t = 0; t < Math.floor(w / 14); t++) {
+    const startX = Math.floor(Math.random() * w);
+    const startY = Math.floor(Math.random() * h);
+    const len = 20 + Math.floor(Math.random() * 40);
+    const angle = (Math.random() > 0.5) ? 1 : -1; // diagonal direction
+    const goldR = 212, goldG = 175, goldB = 133;
+
+    for (let p = 0; p < len; p++) {
+      const gx = Math.floor(startX + p);
+      const gy = Math.floor(startY + p * angle);
+      if (gx >= 0 && gx < w && gy >= 0 && gy < h) {
+        // 2px wide gold thread
+        for (let tw = 0; tw < 2; tw++) {
+          const tyy = gy + tw;
+          if (tyy >= 0 && tyy < h) {
+            const idx = (tyy * w + gx) * 4;
+            const blend = 0.5 + Math.random() * 0.2;
+            d[idx]   = d[idx]   * (1 - blend) + goldR * blend;
+            d[idx+1] = d[idx+1] * (1 - blend) + goldG * blend;
+            d[idx+2] = d[idx+2] * (1 - blend) + goldB * blend;
+          }
+        }
+
+        // Layer 4: Subtle shadow adjacent to gold thread
+        const sx = gx + 1, sy = gy + 2 * angle;
+        if (sx >= 0 && sx < w && sy >= 0 && sy < h) {
+          const sIdx = (sy * w + sx) * 4;
+          d[sIdx]   -= 6;
+          d[sIdx+1] -= 5;
+          d[sIdx+2] -= 4;
+        }
+      }
+    }
+  }
+
+  ctx.putImageData(img, 0, 0);
+}
+
+const isMobile = window.innerWidth <= 480;
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+if (isMobile) {
+  const sw = Math.ceil(window.innerWidth * dpr);
+  const sh = Math.ceil(window.innerHeight * dpr);
+  makeLinenTexture(document.getElementById('envTex'), sw, sh, 232, 215, 195);
+  makeLinenTexture(document.getElementById('flapTex'), sw, sh, 212, 196, 176);
+} else {
+  makeLinenTexture(document.getElementById('envTex'), 880, 620, 232, 215, 195);
+  makeLinenTexture(document.getElementById('flapTex'), 880, 620, 212, 196, 176);
+}
+
+// ======== Gold wax seal texture ========
+(function makeGoldSeal() {
+  const c = document.getElementById('sealTex');
+  const size = 176;
+  c.width = size; c.height = size;
+  const ctx = c.getContext('2d');
+  const cx = size / 2, cy = size / 2, r = size / 2;
+
+  // Gold seal base — warm gold radial gradient
+  const base = ctx.createRadialGradient(
+    cx - r * 0.2, cy - r * 0.25, r * 0.05,
+    cx + r * 0.1, cy + r * 0.15, r * 1.1
+  );
+  base.addColorStop(0,    '#E8C4A0');
+  base.addColorStop(0.3,  '#D4B48C');
+  base.addColorStop(0.6,  '#C0A478');
+  base.addColorStop(0.85, '#A89068');
+  base.addColorStop(1,    '#A0826D');
+  ctx.fillStyle = base;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Linen weave pattern on seal (smaller scale)
+  const img = ctx.getImageData(0, 0, size, size);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const px = (i / 4) % size, py = Math.floor((i / 4) / size);
+    const dist = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2);
+    if (dist > r) continue;
+
+    // Linen weave on seal
+    const hWeave = (py % 2 === 0) ? -2 : 1.5;
+    const vWeave = (px % 3 === 0) ? -1.5 : 1;
+    const n = (Math.random() - 0.5) * 10;
+    d[i]   += n + hWeave + vWeave;
+    d[i+1] += (n + hWeave + vWeave) * 0.85;
+    d[i+2] += (n + hWeave + vWeave) * 0.6;
+  }
+
+  // Gold thread highlights as fine lines on seal
+  for (let t = 0; t < 12; t++) {
+    const angle = Math.random() * Math.PI * 2;
+    const startDist = Math.random() * r * 0.7;
+    const sx = Math.floor(cx + Math.cos(angle) * startDist);
+    const sy = Math.floor(cy + Math.sin(angle) * startDist);
+    const len = 8 + Math.floor(Math.random() * 16);
+    for (let p = 0; p < len; p++) {
+      const gx = Math.floor(sx + Math.cos(angle + 0.3) * p);
+      const gy = Math.floor(sy + Math.sin(angle + 0.3) * p);
+      if (gx >= 0 && gx < size && gy >= 0 && gy < size) {
+        const gDist = Math.sqrt((gx - cx) ** 2 + (gy - cy) ** 2);
+        if (gDist < r) {
+          const idx = (gy * size + gx) * 4;
+          d[idx]   += 18;
+          d[idx+1] += 14;
+          d[idx+2] += 6;
+        }
+      }
+    }
+  }
+
+  // Sparkle points
+  for (let g = 0; g < 200; g++) {
+    const a = Math.random() * Math.PI * 2;
+    const dist = Math.random() * r * 0.9;
+    const gx = Math.floor(cx + Math.cos(a) * dist);
+    const gy = Math.floor(cy + Math.sin(a) * dist);
+    if (gx >= 0 && gx < size && gy >= 0 && gy < size) {
+      const idx = (gy * size + gx) * 4;
+      const spark = Math.random() * 15;
+      d[idx] += spark; d[idx+1] += spark * 0.8; d[idx+2] += spark * 0.3;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+
+  // Edge darkening
+  ctx.globalCompositeOperation = 'source-atop';
+  const edge = ctx.createRadialGradient(
+    cx - r * 0.18, cy - r * 0.18, r * 0.55,
+    cx + r * 0.05, cy + r * 0.05, r
+  );
+  edge.addColorStop(0, 'transparent');
+  edge.addColorStop(0.4, 'rgba(0,0,0,0.03)');
+  edge.addColorStop(0.7, 'rgba(0,0,0,0.10)');
+  edge.addColorStop(0.88, 'rgba(0,0,0,0.20)');
+  edge.addColorStop(1, 'rgba(0,0,0,0.32)');
+  ctx.fillStyle = edge;
+  ctx.fillRect(0, 0, size, size);
+
+  // Raised rim
+  const rimOuter = ctx.createRadialGradient(cx, cy, r * 0.74, cx, cy, r * 0.86);
+  rimOuter.addColorStop(0, 'transparent');
+  rimOuter.addColorStop(0.2, 'rgba(255,240,180,0.15)');
+  rimOuter.addColorStop(0.5, 'rgba(255,240,180,0.25)');
+  rimOuter.addColorStop(0.8, 'rgba(255,240,180,0.12)');
+  rimOuter.addColorStop(1, 'transparent');
+  ctx.fillStyle = rimOuter;
+  ctx.fillRect(0, 0, size, size);
+})();
+
+// ======== Interaction ========
+const scene = document.getElementById('scene');
+const seal = document.getElementById('seal');
+const btn = document.getElementById('closeBtn');
+
+function openEnvelope() {
+  scene.classList.add('phase-1');
+  setTimeout(() => scene.classList.add('phase-2'), 900);
+  setTimeout(() => scene.classList.add('phase-3'), 1600);
+}
+function closeEnvelope() {
+  scene.classList.remove('phase-3', 'phase-2', 'phase-1');
+}
+seal.addEventListener('click', e => { e.stopPropagation(); openEnvelope(); });
+btn.addEventListener('click', e => { e.stopPropagation(); closeEnvelope(); });
+</script>
+</body>
+</html>

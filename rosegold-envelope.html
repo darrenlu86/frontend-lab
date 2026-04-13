@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rose Gold Envelope — Wedding Invitation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+TC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100dvh;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', 'Noto Serif TC', serif;
+    background-color: #3a2e2a;
+    background-image: url('natural-paper.png');
+    overflow: hidden;
+  }
+
+  .scene {
+    position: relative;
+    width: 440px; height: 100dvh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+
+  .envelope-outer {
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25))
+            drop-shadow(0 8px 24px rgba(0,0,0,0.15));
+    transition: transform 0.8s cubic-bezier(0.4,0,0.2,1),
+                opacity 0.7s ease;
+  }
+
+  .envelope {
+    position: relative;
+    width: 440px; height: 310px;
+    border-radius: 4px;
+    z-index: 2;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+  }
+
+  .env-body {
+    width: 100%; height: 100%;
+    position: relative;
+    background-color: #D4A080;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .env-body canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+  .metallic-sheen {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(135deg,
+        rgba(255,200,180,0.25) 0%,
+        rgba(255,180,160,0.08) 25%,
+        rgba(255,220,200,0.20) 45%,
+        rgba(200,140,120,0.05) 65%,
+        rgba(255,190,170,0.18) 85%,
+        rgba(255,210,190,0.12) 100%),
+      repeating-linear-gradient(60deg,
+        transparent 0px,
+        transparent 30px,
+        rgba(255,220,200,0.06) 30px,
+        rgba(255,220,200,0.06) 31px);
+    pointer-events: none; z-index: 1;
+    mix-blend-mode: soft-light;
+  }
+
+  /* Rose gold inner glow border */
+  .inner-glow {
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(232,180,140,0.2);
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 2;
+    box-shadow:
+      inset 0 0 8px rgba(232,180,140,0.08),
+      0 0 6px rgba(232,180,140,0.06);
+  }
+  .inner-glow::before {
+    content: '';
+    position: absolute; inset: -1px;
+    border: 1px solid rgba(255,210,180,0.1);
+    border-radius: 3px;
+  }
+
+  .flap-shadow {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    transition: opacity 1.5s ease;
+  }
+  .scene.phase-2 .flap-shadow { opacity: 0; }
+
+  .fold-svg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  .env-flap-wrapper {
+    position: absolute;
+    inset: 0;
+    transform-origin: center top;
+    transform-style: preserve-3d;
+    transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity 0.8s ease 0.6s;
+  }
+  .env-flap {
+    position: absolute;
+    inset: 0;
+    background-color: #C08E72;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 28%, 50% 42%, 0% 28%);
+    overflow: hidden;
+  }
+  .env-flap canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+  .env-flap::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(135deg,
+        rgba(255,220,190,0.14) 0%,
+        rgba(255,220,190,0.05) 40%,
+        rgba(180,140,110,0.06) 70%,
+        rgba(160,120,90,0.10) 100%),
+      linear-gradient(to bottom,
+        rgba(255,220,190,0.08) 0%,
+        rgba(180,140,110,0.03) 38%,
+        rgba(160,120,90,0.08) 42%);
+    pointer-events: none; z-index: 1;
+    transition: background 0.8s ease;
+  }
+  .scene.phase-1 .env-flap::before {
+    background:
+      linear-gradient(135deg,
+        rgba(255,220,190,0.10) 0%,
+        rgba(160,120,90,0.08) 30%,
+        rgba(140,100,70,0.18) 70%,
+        rgba(120,80,50,0.26) 100%),
+      linear-gradient(to bottom,
+        rgba(160,120,90,0.04) 0%,
+        rgba(140,100,70,0.14) 30%,
+        rgba(120,80,50,0.22) 42%);
+  }
+
+  /* Flap inner glow */
+  .flap-inner-glow {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(2% 2%, 98% 2%, 98% 26%, 50% 39%, 2% 26%);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .flap-inner-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(3% 3%, 97% 3%, 97% 27%, 50% 40%, 3% 27%);
+    border: none;
+    background:
+      linear-gradient(
+        -25deg,
+        rgba(232,180,140,0.06) 0%,
+        rgba(255,210,180,0.03) 50%,
+        rgba(232,180,140,0.06) 100%
+      );
+    mask: linear-gradient(to bottom, black 0%, black 26%, transparent 42%);
+    -webkit-mask: linear-gradient(to bottom, black 0%, black 26%, transparent 42%);
+  }
+
+  /* ======== Pearl Seal ======== */
+  .seal {
+    position: absolute;
+    top: 42%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 88px; height: 88px;
+    cursor: pointer;
+    transition: opacity 0.8s ease 0.5s;
+  }
+  .seal::before {
+    content: '';
+    position: absolute; inset: 0; border-radius: 50%;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.3),
+      1px 2px 4px rgba(0,0,0,0.25),
+      2px 4px 8px rgba(0,0,0,0.2),
+      3px 6px 16px rgba(0,0,0,0.15);
+    pointer-events: none;
+  }
+  .scene.phase-1 .seal-pulse { animation: none; opacity: 0; }
+  .scene.phase-2 .seal { opacity: 0; transition: opacity 0.5s ease; }
+
+  .seal-disc {
+    width: 100%; height: 100%; border-radius: 50%;
+    position: relative; overflow: hidden;
+  }
+  .seal-disc canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+  }
+  .seal-disc::after {
+    content: '';
+    position: absolute; inset: 0; border-radius: 50%;
+    background:
+      radial-gradient(ellipse at 30% 25%, rgba(255,250,245,0.35) 0%, transparent 45%),
+      radial-gradient(ellipse at 70% 75%, rgba(180,140,110,0.08) 0%, transparent 40%);
+    pointer-events: none; z-index: 2;
+  }
+  .seal-shadow {
+    position: absolute; inset: 9px; border-radius: 50%;
+    box-shadow:
+      inset 5px 5px 6px -2px rgba(0,0,0,0.2),
+      inset 3px 3px 4px -1px rgba(0,0,0,0.12);
+    pointer-events: none; z-index: 3;
+  }
+  .seal-center-dip {
+    position: absolute; inset: 18%; border-radius: 50%;
+    pointer-events: none; z-index: 3;
+  }
+  .seal-ring {
+    position: absolute; inset: 5px; border-radius: 50%;
+    border: 0.5px solid rgba(210,170,140,0.4);
+    pointer-events: none; z-index: 4;
+  }
+  .seal-ring::before {
+    content: '';
+    position: absolute; inset: 4px; border-radius: 50%;
+    border: 0.5px solid rgba(180,140,110,0.2);
+  }
+  .seal-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; font-weight: 500; letter-spacing: 0.5px;
+    font-style: italic;
+    color: rgba(200,170,140,0.3);
+    text-shadow:
+      -1px -1px 0 rgba(255,245,240,0.6),
+      1px 1px 1px rgba(160,120,90,0.3),
+      -1px -1px 2px rgba(255,240,230,0.25),
+      1px 1px 3px rgba(140,100,70,0.15);
+    z-index: 5;
+  }
+  .seal-pulse {
+    position: absolute; inset: -8px; border-radius: 50%;
+    border: 1px solid rgba(232,180,140,0.25);
+    animation: pulse 2.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.12); opacity: 0; }
+  }
+
+  .env-text {
+    text-align: center;
+    color: rgba(232,196,170,0.75);
+    font-size: 13.5px; font-weight: 400;
+    letter-spacing: 3px; margin-top: 24px;
+    transition: opacity 0.5s ease;
+  }
+  .tap-hint {
+    text-align: center; font-size: 10.5px;
+    color: rgba(232,196,170,0.45);
+    letter-spacing: 2px; margin-top: 8px;
+    animation: fadeHint 3s ease-in-out infinite;
+    transition: opacity 0.5s ease;
+  }
+  @keyframes fadeHint {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+  }
+
+  .card {
+    position: absolute;
+    width: 396px; padding: 40px 32px;
+    border-radius: 2px;
+    background-color: #faf6f0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    display: flex; flex-direction: column; align-items: center;
+    opacity: 0; z-index: 0; pointer-events: none;
+    transform: translateY(20px) scale(0.96);
+    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .card-border {
+    position: absolute; inset: 12px;
+    border: 1px solid rgba(210,170,140,0.18);
+    pointer-events: none;
+  }
+  .card-border::before {
+    content: ''; position: absolute; inset: 4px;
+    border: 0.5px solid rgba(210,170,140,0.08);
+  }
+  .card-ornament {
+    width: 44px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(210,170,140,0.35), transparent);
+    margin-bottom: 22px;
+  }
+  .card-names {
+    font-size: 25px; font-weight: 400;
+    color: #4a3530; text-align: center;
+    line-height: 1.8; letter-spacing: 4px;
+  }
+  .card-and {
+    font-style: italic; font-size: 15px;
+    color: rgba(210,170,140,0.5);
+    letter-spacing: 2px; font-weight: 400;
+  }
+  .card-details {
+    margin-top: 22px; text-align: center;
+    color: #7a5f55; font-size: 12px;
+    font-weight: 400; letter-spacing: 2px; line-height: 2.2;
+  }
+  .card-footer {
+    font-size: 9px; margin-top: 24px;
+    color: rgba(180,140,120,0.25);
+    letter-spacing: 4px; text-transform: uppercase;
+  }
+
+  .close-btn {
+    position: fixed; top: 24px; right: 24px;
+    background: none; border: none;
+    color: rgba(232,196,170,0.35);
+    font-size: 12px; letter-spacing: 3px;
+    cursor: pointer; opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+    font-family: 'Playfair Display', serif; z-index: 20;
+  }
+  .close-btn:hover { color: rgba(232,196,170,0.6); }
+
+  /* Animation Phases */
+  .scene.phase-1 .fold-upper { opacity: 0; }
+  .scene.phase-1 .env-flap-wrapper { transform: rotateX(40deg); }
+
+  .scene.phase-2 .env-flap-wrapper { transform: rotateX(160deg); opacity: 0; }
+  .scene.phase-2 .envelope-outer { transform: translateY(20px) scale(0.96); opacity: 0; }
+  .scene.phase-2 .env-text,
+  .scene.phase-2 .tap-hint { opacity: 0; }
+
+  .scene.phase-3 .card { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; z-index: 10; }
+  .scene.phase-3 .close-btn { opacity: 1; pointer-events: auto; }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    body { background-color: #D4A080; background-image: none; }
+    .scene { width: 100vw; }
+    .envelope-outer { position: fixed; inset: 0; width: 100vw; height: 100dvh; filter: none; }
+    .envelope { width: 100%; height: 100%; border-radius: 0; perspective: 1200px; }
+    .env-body canvas { border-radius: 0; }
+    .inner-glow { inset: 12px; }
+    .seal { width: 88px !important; height: 88px !important; }
+    .scene.phase-1 .env-flap-wrapper { transform: rotateX(35deg); }
+    .scene.phase-2 .env-flap-wrapper { transform: rotateX(150deg); opacity: 0; }
+    .scene.phase-2 .envelope-outer { opacity: 0; }
+    .env-text { position: fixed !important; bottom: 16vh; left: 0; right: 0; margin-top: 0 !important; z-index: 6; font-size: 14px; }
+    .tap-hint { position: fixed !important; bottom: 12vh; left: 0; right: 0; margin-top: 0 !important; z-index: 6; }
+    .card { width: 88vw; max-width: 360px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="close-btn" id="closeBtn">CLOSE</button>
+
+<div class="scene" id="scene">
+  <div class="card" id="card">
+    <div class="card-border"></div>
+    <div class="card-ornament"></div>
+    <div class="card-names">
+      YU CHEN
+      <div class="card-and">&amp;</div>
+      WEI TING
+    </div>
+    <div class="card-details">
+      <div>二〇二六年 十月 十七日</div>
+      <div>週六 午間十二時</div>
+      <div style="margin-top:8px">台北 君悅酒店</div>
+      <div>Grand Ballroom</div>
+    </div>
+    <div class="card-footer">WEDDING INVITATION</div>
+  </div>
+
+  <div class="envelope-outer">
+  <div class="envelope">
+    <div class="env-body">
+      <canvas id="envTex"></canvas>
+      <div class="metallic-sheen"></div>
+      <div class="inner-glow"></div>
+    </div>
+
+    <svg class="flap-shadow" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs>
+        <filter id="flapShadowBlur"><feGaussianBlur stdDeviation="2.2"/></filter>
+        <linearGradient id="flapShadowGrad" x1="0" y1="0" x2="1" y2="0.3">
+          <stop offset="0%" stop-color="rgba(0,0,0,0.0)"/>
+          <stop offset="25%" stop-color="rgba(0,0,0,0.06)"/>
+          <stop offset="50%" stop-color="rgba(0,0,0,0.22)"/>
+          <stop offset="75%" stop-color="rgba(0,0,0,0.42)"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0.55)"/>
+        </linearGradient>
+      </defs>
+      <polygon points="0,0 100,0 100,28 50,42 0,28"
+               fill="url(#flapShadowGrad)" filter="url(#flapShadowBlur)"/>
+    </svg>
+
+    <svg class="fold-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs>
+        <filter id="foldBlur"><feGaussianBlur stdDeviation="0.15"/></filter>
+        <filter id="foldShadow"><feGaussianBlur stdDeviation="0.4"/></filter>
+      </defs>
+      <g class="fold-upper" style="transition: opacity 0.5s ease;">
+        <!-- Warm shadow lines -->
+        <line x1="-30" y1="20" x2="50" y2="42" stroke="rgba(160,120,90,0.12)" stroke-width="1.5" filter="url(#foldShadow)"/>
+        <line x1="130" y1="20" x2="50" y2="42" stroke="rgba(160,120,90,0.10)" stroke-width="1.2" filter="url(#foldShadow)"/>
+        <!-- Sharp fold creases -->
+        <line x1="-30" y1="20" x2="50" y2="42" stroke="rgba(255,210,180,0.12)" stroke-width="0.45" filter="url(#foldBlur)"/>
+        <line x1="130" y1="20" x2="50" y2="42" stroke="rgba(255,210,180,0.10)" stroke-width="0.4" filter="url(#foldBlur)"/>
+        <!-- Highlight lines -->
+        <line x1="-30" y1="19.5" x2="50.2" y2="41.5" stroke="rgba(255,220,190,0.15)" stroke-width="0.3"/>
+        <line x1="130" y1="19.5" x2="49.8" y2="41.5" stroke="rgba(255,220,190,0.12)" stroke-width="0.25"/>
+      </g>
+      <g class="fold-lower">
+        <line x1="-30" y1="80" x2="50" y2="42" stroke="rgba(160,120,90,0.08)" stroke-width="0.8" filter="url(#foldShadow)"/>
+        <line x1="130" y1="80" x2="50" y2="42" stroke="rgba(160,120,90,0.06)" stroke-width="0.7" filter="url(#foldShadow)"/>
+        <line x1="-30" y1="80" x2="50" y2="42" stroke="rgba(255,210,180,0.08)" stroke-width="0.25" filter="url(#foldBlur)"/>
+        <line x1="130" y1="80" x2="50" y2="42" stroke="rgba(255,210,180,0.06)" stroke-width="0.2" filter="url(#foldBlur)"/>
+        <line x1="-30" y1="80.4" x2="50.2" y2="42.4" stroke="rgba(255,220,190,0.10)" stroke-width="0.2"/>
+        <line x1="130" y1="80.4" x2="49.8" y2="42.4" stroke="rgba(255,220,190,0.08)" stroke-width="0.18"/>
+      </g>
+    </svg>
+
+    <div class="env-flap-wrapper">
+      <div class="env-flap">
+        <canvas id="flapTex"></canvas>
+        <div class="flap-inner-glow"></div>
+      </div>
+      <div class="seal" id="seal">
+        <div class="seal-pulse"></div>
+        <div class="seal-disc">
+          <canvas id="sealTex"></canvas>
+          <div class="seal-shadow"></div>
+          <div class="seal-center-dip"></div>
+          <div class="seal-ring"></div>
+          <div class="seal-text">Y &amp; W</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="env-text">這份邀請 專屬於你</div>
+  <div class="tap-hint">輕觸封印開啟</div>
+</div>
+
+<script>
+// ======== Rose Gold Foil Texture ========
+function makeRoseGoldTexture(canvas, w, h, baseR, baseG, baseB) {
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  // Base: radial gradient from light rose gold to deeper
+  const bg = ctx.createRadialGradient(w * 0.3, h * 0.3, 0, w * 0.5, h * 0.5, Math.max(w, h) * 0.8);
+  bg.addColorStop(0, `rgb(${baseR + 8},${baseG + 6},${baseB + 4})`);
+  bg.addColorStop(0.5, `rgb(${baseR},${baseG},${baseB})`);
+  bg.addColorStop(1, `rgb(${baseR - 6},${baseG - 8},${baseB - 6})`);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+
+  // Layer 1: Fine random noise with warm bias
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * 10;
+    const warm = Math.random() * 4;
+    d[i] += n + warm;
+    d[i + 1] += n + warm * 0.5;
+    d[i + 2] += n - warm * 0.3;
+  }
+
+  // Layer 2: Directional brushstroke lines at ~60 degrees
+  for (let s = 0; s < 600; s++) {
+    const sy = Math.random() * h;
+    const sx = Math.random() * w;
+    const len = 20 + Math.random() * 80;
+    const opacity = 0.08 + Math.random() * 0.07;
+    const br = (Math.random() - 0.5) * 36 * opacity / 0.12;
+    const angle = (55 + Math.random() * 10) * Math.PI / 180;
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+    for (let p = 0; p < len; p++) {
+      const px = Math.floor(sx + p * cosA + (Math.random() - 0.5) * 2);
+      const py = Math.floor(sy + p * sinA + (Math.random() - 0.5) * 2);
+      if (px >= 0 && px < w && py >= 0 && py < h) {
+        const idx = (py * w + px) * 4;
+        d[idx] += br + 1; d[idx + 1] += br * 0.8; d[idx + 2] += br * 0.6;
+      }
+    }
+  }
+
+  // Layer 3: 30-40 radial light pool circles with soft falloff
+  const poolCount = 30 + Math.floor(Math.random() * 11);
+  for (let b = 0; b < poolCount; b++) {
+    const bx = Math.random() * w, by = Math.random() * h;
+    const bR = 25 + Math.random() * 55;
+    const bBr = (Math.random() - 0.3) * 12;
+    for (let dy = -bR; dy < bR; dy++) {
+      for (let dx = -bR; dx < bR; dx++) {
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < bR) {
+          const px = Math.floor(bx + dx), py = Math.floor(by + dy);
+          if (px >= 0 && px < w && py >= 0 && py < h) {
+            const falloff = 1 - dist / bR;
+            const soft = falloff * falloff * falloff;
+            const idx = (py * w + px) * 4;
+            const v = bBr * soft;
+            d[idx] += v + 1.5; d[idx + 1] += v + 0.5; d[idx + 2] += v - 0.3;
+          }
+        }
+      }
+    }
+  }
+
+  // Layer 4: 200+ sparkle points scattered
+  for (let g = 0; g < 220; g++) {
+    const gx = Math.floor(Math.random() * w);
+    const gy = Math.floor(Math.random() * h);
+    if (gx >= 0 && gx < w && gy >= 0 && gy < h) {
+      const idx = (gy * w + gx) * 4;
+      const sparkOpacity = 0.15 + Math.random() * 0.10;
+      const spark = sparkOpacity * 80 + Math.random() * 30;
+      d[idx] += spark; d[idx + 1] += spark * 0.75; d[idx + 2] += spark * 0.4;
+    }
+  }
+
+  ctx.putImageData(img, 0, 0);
+
+  // Layer 5: Diagonal gradient overlay simulating light catching the surface
+  ctx.globalCompositeOperation = 'screen';
+  const lightGrad = ctx.createLinearGradient(0, 0, w * 0.7, h * 0.7);
+  lightGrad.addColorStop(0, 'rgba(255,230,210,0.06)');
+  lightGrad.addColorStop(0.3, 'rgba(255,220,195,0.03)');
+  lightGrad.addColorStop(0.7, 'rgba(255,210,180,0.01)');
+  lightGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = lightGrad;
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+const isMobile = window.innerWidth <= 480;
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+if (isMobile) {
+  const sw = Math.ceil(window.innerWidth * dpr);
+  const sh = Math.ceil(window.innerHeight * dpr);
+  makeRoseGoldTexture(document.getElementById('envTex'), sw, sh, 212, 160, 128);
+  makeRoseGoldTexture(document.getElementById('flapTex'), sw, sh, 192, 142, 114);
+} else {
+  makeRoseGoldTexture(document.getElementById('envTex'), 880, 620, 212, 160, 128);
+  makeRoseGoldTexture(document.getElementById('flapTex'), 880, 620, 192, 142, 114);
+}
+
+// ======== Pearl White Seal with Rose Gold Speckles ========
+(function makePearlSeal() {
+  const c = document.getElementById('sealTex');
+  const size = 176;
+  c.width = size; c.height = size;
+  const ctx = c.getContext('2d');
+  const cx = size / 2, cy = size / 2, r = size / 2;
+
+  // Pearl white base with rose-tinted edges
+  const base = ctx.createRadialGradient(
+    cx - r * 0.25, cy - r * 0.3, r * 0.05,
+    cx + r * 0.1, cy + r * 0.15, r * 1.1
+  );
+  base.addColorStop(0, '#FAF5F0');
+  base.addColorStop(0.2, '#F5EDE5');
+  base.addColorStop(0.45, '#EDE0D4');
+  base.addColorStop(0.7, '#E2CFBF');
+  base.addColorStop(1, '#D4BAA5');
+  ctx.fillStyle = base;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Pearl texture noise + rose gold speckles
+  const img = ctx.getImageData(0, 0, size, size);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const px = (i / 4) % size, py = Math.floor((i / 4) / size);
+    const dist = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2);
+    if (dist > r) continue;
+    const n = (Math.random() - 0.5) * 8;
+    const rose = (Math.random() - 0.5) * 3;
+    d[i] += n + rose; d[i + 1] += n - rose * 0.3; d[i + 2] += n - rose * 0.8;
+  }
+
+  // Rose gold sparkle speckles
+  for (let g = 0; g < 150; g++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.random() * r * 0.88;
+    const gx = Math.floor(cx + Math.cos(angle) * dist);
+    const gy = Math.floor(cy + Math.sin(angle) * dist);
+    if (gx >= 0 && gx < size && gy >= 0 && gy < size) {
+      const idx = (gy * size + gx) * 4;
+      const spark = 8 + Math.random() * 10;
+      d[idx] += spark; d[idx + 1] += spark * 0.6; d[idx + 2] += spark * 0.3;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+
+  // Iridescent inner rim using sine-wave color shifting
+  ctx.globalCompositeOperation = 'source-atop';
+  for (let a = 0; a < 360; a += 1) {
+    const rad = a * Math.PI / 180;
+    const rimR = r * 0.78;
+    const rimOuter = r * 0.88;
+    const t = a / 360;
+    const rVal = Math.floor(220 + 30 * Math.sin(t * Math.PI * 4));
+    const gVal = Math.floor(170 + 25 * Math.sin(t * Math.PI * 4 + 2));
+    const bVal = Math.floor(140 + 20 * Math.sin(t * Math.PI * 4 + 4));
+    ctx.strokeStyle = `rgba(${rVal},${gVal},${bVal},0.12)`;
+    ctx.lineWidth = rimOuter - rimR;
+    ctx.beginPath();
+    ctx.arc(cx, cy, (rimR + rimOuter) / 2, rad, rad + 0.025);
+    ctx.stroke();
+  }
+
+  // Concentric circles embossed effect
+  for (let ci = 0; ci < 4; ci++) {
+    const circR = r * (0.35 + ci * 0.14);
+    ctx.strokeStyle = `rgba(210,180,155,${0.08 - ci * 0.015})`;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, circR, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Edge darkening
+  const edge = ctx.createRadialGradient(
+    cx - r * 0.15, cy - r * 0.15, r * 0.55,
+    cx + r * 0.05, cy + r * 0.05, r
+  );
+  edge.addColorStop(0, 'transparent');
+  edge.addColorStop(0.4, 'rgba(0,0,0,0.02)');
+  edge.addColorStop(0.7, 'rgba(0,0,0,0.06)');
+  edge.addColorStop(0.88, 'rgba(0,0,0,0.12)');
+  edge.addColorStop(1, 'rgba(0,0,0,0.20)');
+  ctx.fillStyle = edge;
+  ctx.fillRect(0, 0, size, size);
+
+  // Rose gold rim highlight
+  const rimHighlight = ctx.createRadialGradient(cx, cy, r * 0.76, cx, cy, r * 0.88);
+  rimHighlight.addColorStop(0, 'transparent');
+  rimHighlight.addColorStop(0.2, 'rgba(232,196,170,0.10)');
+  rimHighlight.addColorStop(0.5, 'rgba(232,196,170,0.18)');
+  rimHighlight.addColorStop(0.8, 'rgba(232,196,170,0.08)');
+  rimHighlight.addColorStop(1, 'transparent');
+  ctx.fillStyle = rimHighlight;
+  ctx.fillRect(0, 0, size, size);
+})();
+
+// ======== Interaction ========
+const scene = document.getElementById('scene');
+const seal = document.getElementById('seal');
+const btn = document.getElementById('closeBtn');
+
+function openEnvelope() {
+  scene.classList.add('phase-1');
+  setTimeout(() => scene.classList.add('phase-2'), 900);
+  setTimeout(() => scene.classList.add('phase-3'), 1600);
+}
+function closeEnvelope() {
+  scene.classList.remove('phase-3', 'phase-2', 'phase-1');
+}
+seal.addEventListener('click', e => { e.stopPropagation(); openEnvelope(); });
+btn.addEventListener('click', e => { e.stopPropagation(); closeEnvelope(); });
+</script>
+</body>
+</html>
