@@ -58,26 +58,19 @@
   }
 
   /*
-    蓋子陰影 — 固定在信封表面，三角形區域
-    始終存在（opacity: 1），被蓋子在 3D 空間中遮住
-    蓋子旋轉後 V 尖端在 3D 空間移到陰影後面 → 自然露出陰影
-    V 尖端最暗（蓋子折疊最深處），頂部（近鉸鏈）無陰影
+    蓋子陰影（光源：左上方）
+    用 radial-gradient 讓陰影在 clip-path 邊界前自然消散 → 無硬邊
+    被 3D 蓋子遮住，蓋子旋轉後在 3D 空間露出
   */
   .flap-shadow {
     position: absolute;
     inset: 0;
-    clip-path: polygon(0% 0%, 100% 0%, 100% 28%, 50% 42%, 0% 28%);
-    background: linear-gradient(to top,
-      rgba(0,0,0,0.18) 0%,
-      rgba(0,0,0,0.10) 40%,
-      rgba(0,0,0,0.03) 80%,
-      transparent 100%);
+    width: 100%; height: 100%;
     pointer-events: none;
+    transition: opacity 1.5s ease;
   }
-  /* Phase 2: 蓋子完全打開後，陰影漸消（光照進來） */
   .scene.phase-2 .flap-shadow {
     opacity: 0;
-    transition: opacity 1.5s ease;
   }
 
   /* V 摺痕 SVG */
@@ -115,24 +108,38 @@
     position: absolute; inset: 0;
     width: 100%; height: 100%;
   }
-  /* 蓋子的明暗 */
+  /* 蓋子的明暗 — 光源左上 */
   .env-flap::before {
     content: '';
     position: absolute; inset: 0;
-    background: linear-gradient(to bottom,
-      rgba(255,255,255,0.04) 0%,
-      transparent 20%,
-      rgba(0,0,0,0.02) 38%,
-      rgba(0,0,0,0.04) 42%);
+    background:
+      /* 左上亮 → 右下暗 */
+      linear-gradient(135deg,
+        rgba(255,255,255,0.06) 0%,
+        transparent 40%,
+        rgba(0,0,0,0.03) 70%,
+        rgba(0,0,0,0.06) 100%),
+      /* 底邊（V 尖端）略暗 */
+      linear-gradient(to bottom,
+        transparent 0%,
+        rgba(0,0,0,0.02) 38%,
+        rgba(0,0,0,0.04) 42%);
     pointer-events: none; z-index: 1;
     transition: background 0.8s ease;
   }
   .scene.phase-1 .env-flap::before {
-    background: linear-gradient(to bottom,
-      rgba(0,0,0,0.01) 0%,
-      rgba(0,0,0,0.04) 20%,
-      rgba(0,0,0,0.07) 35%,
-      rgba(0,0,0,0.10) 42%);
+    background:
+      /* 翻開時：左上仍受光，右下更暗 */
+      linear-gradient(135deg,
+        rgba(255,255,255,0.03) 0%,
+        rgba(0,0,0,0.04) 30%,
+        rgba(0,0,0,0.12) 70%,
+        rgba(0,0,0,0.18) 100%),
+      /* 底邊加深 */
+      linear-gradient(to bottom,
+        rgba(0,0,0,0.02) 0%,
+        rgba(0,0,0,0.10) 30%,
+        rgba(0,0,0,0.16) 42%);
   }
 
   /* ======== 蠟封 — 蓋子的子元素，自動跟著 3D 旋轉 ======== */
@@ -449,8 +456,22 @@
       <canvas id="envTex"></canvas>
     </div>
 
-    <!-- 蓋子陰影 — 限定在蓋子原本覆蓋的三角形區域 -->
-    <div class="flap-shadow"></div>
+    <!-- 蓋子陰影 — SVG 模糊 V 形，光源左上 -->
+    <svg class="flap-shadow" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs>
+        <filter id="flapShadowBlur">
+          <feGaussianBlur stdDeviation="2.2"/>
+        </filter>
+        <linearGradient id="flapShadowGrad" x1="0" y1="0" x2="1" y2="0.4">
+          <stop offset="0%" stop-color="rgba(0,0,0,0.06)"/>
+          <stop offset="40%" stop-color="rgba(0,0,0,0.22)"/>
+          <stop offset="75%" stop-color="rgba(0,0,0,0.36)"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0.42)"/>
+        </linearGradient>
+      </defs>
+      <polygon points="0,0 100,0 100,28 50,42 0,28"
+               fill="url(#flapShadowGrad)" filter="url(#flapShadowBlur)"/>
+    </svg>
 
     <!--
       V 摺痕 — 從畫面外以淺角度進入，交會在 42% 高度
