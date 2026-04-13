@@ -20,7 +20,7 @@
 
   .scene {
     position: relative;
-    width: 340px; height: 100dvh;
+    width: 440px; height: 100dvh;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
   }
@@ -36,7 +36,7 @@
   /* ======== 信封 — 3D 容器 ======== */
   .envelope {
     position: relative;
-    width: 340px; height: 240px;
+    width: 440px; height: 310px;
     border-radius: 3px;
     z-index: 2;
     /* 3D 空間：perspective 放在父元素，preserve-3d 讓子元素在同一 3D 空間 */
@@ -147,7 +147,7 @@
     position: absolute;
     top: 42%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 60px; height: 60px;
+    width: 88px; height: 88px;
     cursor: pointer;
     transition: opacity 0.8s ease 0.5s;
   }
@@ -215,10 +215,18 @@
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 15px; font-weight: 400; letter-spacing: 0.5px;
+    font-size: 13px; font-weight: 400; letter-spacing: 0.5px;
     font-style: italic;
-    color: rgba(145,125,100,0.50);
-    text-shadow: 0 -0.5px 0 rgba(0,0,0,0.08), 0 0.5px 0 rgba(255,255,255,0.35);
+    /* 文字顏色接近蠟面，靠光影區分 */
+    color: rgba(170,150,125,0.22);
+    text-shadow:
+      /* 左上亮邊 — 凸起頂面受光 */
+      -1px -1px 0 rgba(255,245,235,0.65),
+      /* 右下暗邊 — 凸起投射陰影 */
+      1px 1px 1px rgba(70,50,30,0.35),
+      /* 柔和擴散 */
+      -1px -1px 2px rgba(255,245,235,0.25),
+      1px 1px 3px rgba(70,50,30,0.15);
     z-index: 5;
   }
   .seal-pulse {
@@ -255,7 +263,7 @@
   /* ======== 卡片 ======== */
   .card {
     position: absolute;
-    width: 306px; padding: 36px 28px;
+    width: 396px; padding: 40px 32px;
     border-radius: 2px;
     background-color: #f5efe8;
     background-image: url('cream-paper.png');
@@ -616,14 +624,14 @@ if (isMobile) {
   makePaperTexture(document.getElementById('envTex'), sw, sh, 201, 189, 179);
   makePaperTexture(document.getElementById('flapTex'), sw, sh, 206, 195, 184);
 } else {
-  makePaperTexture(document.getElementById('envTex'), 680, 480, 201, 189, 179);
-  makePaperTexture(document.getElementById('flapTex'), 680, 480, 206, 195, 184);
+  makePaperTexture(document.getElementById('envTex'), 880, 620, 201, 189, 179);
+  makePaperTexture(document.getElementById('flapTex'), 880, 620, 206, 195, 184);
 }
 
 // ======== 蠟封紋理 ========
 (function makeWaxSeal() {
   const c = document.getElementById('sealTex');
-  const size = isMobile ? 176 : 120;
+  const size = 176;
   c.width = size; c.height = size;
   const ctx = c.getContext('2d');
   const cx = size/2, cy = size/2, r = size/2;
